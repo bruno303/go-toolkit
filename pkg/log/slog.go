@@ -26,12 +26,13 @@ func NewSlogAdapter(opts SlogAdapterOpts) SlogAdapter {
 	level := toSlogLevel(opts.Level)
 	levelVar := &slog.LevelVar{}
 	levelVar.Set(level)
+	var extractInfo func(context.Context) []any = nil
 
 	if opts.ExtractAdditionalInfo == nil {
 		opts.ExtractAdditionalInfo = func(context.Context) []any { return nil }
 	}
-	opts.ExtractAdditionalInfo = func(ctx context.Context) []any {
-		ai := []any{}
+	extractInfo = func(ctx context.Context) []any {
+		ai := make([]any, 0)
 		ai = append(ai, "source", opts.Source)
 		ai = append(ai, opts.ExtractAdditionalInfo(ctx)...)
 		return ai
@@ -51,7 +52,7 @@ func NewSlogAdapter(opts SlogAdapterOpts) SlogAdapter {
 	return SlogAdapter{
 		logger:                slog.New(handler),
 		level:                 levelVar,
-		extractAdditionalInfo: opts.ExtractAdditionalInfo,
+		extractAdditionalInfo: extractInfo,
 	}
 }
 

@@ -6,11 +6,12 @@ import (
 )
 
 var (
-	log     Logger        = nil
-	factory func() Logger = func() Logger {
+	log     Logger              = nil
+	factory func(string) Logger = func(name string) Logger {
 		return NewSlogAdapter(SlogAdapterOpts{
 			Level:      LevelInfo,
 			FormatJson: false,
+			Source:     name,
 		})
 	}
 	mutex sync.Mutex
@@ -37,7 +38,7 @@ func Log() Logger {
 	mutex.TryLock()
 	defer mutex.Unlock()
 	if log == nil {
-		log = factory()
+		log = factory("default")
 	}
 	return log
 }
@@ -46,10 +47,10 @@ func SetLogger(lg Logger) {
 	log = lg
 }
 
-func SetLoggerFactory(f func() Logger) {
+func SetLoggerFactory(f func(string) Logger) {
 	factory = f
 }
 
 func NewLogger(name string) Logger {
-	return factory()
+	return factory(name)
 }
