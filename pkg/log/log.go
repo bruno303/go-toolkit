@@ -32,6 +32,7 @@ type Logger interface {
 	Warn(ctx context.Context, msg string, args ...any)
 	Error(ctx context.Context, msg string, err error)
 	SetLevel(l Level) error
+	Shutdown(context.Context) error
 }
 
 func Log() Logger {

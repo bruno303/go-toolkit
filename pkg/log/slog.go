@@ -22,6 +22,8 @@ type (
 	}
 )
 
+var _ Logger = (*SlogAdapter)(nil)
+
 func NewSlogAdapter(opts SlogAdapterOpts) SlogAdapter {
 	level := toSlogLevel(opts.Level)
 	levelVar := &slog.LevelVar{}
@@ -86,6 +88,10 @@ func (l SlogAdapter) Error(ctx context.Context, msg string, err error) {
 
 func (la SlogAdapter) SetLevel(l Level) error {
 	la.level.Set(toSlogLevel(l))
+	return nil
+}
+
+func (l SlogAdapter) Shutdown(context.Context) error {
 	return nil
 }
 
