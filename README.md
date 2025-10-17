@@ -27,11 +27,15 @@ log.SetLogger(
 
 ```go
 trace.SetTracer(otel.NewOtelTracerAdapter())
-otelShutdown, err := otel.SetupOTelSDK(ctx, &otel.TraceConfig{
-  Kind: "server",
-  TraceName: "process",
-  SpanName: "step"
+shutdown, err := trace.SetupOTelSDK(ctx, trace.Config{
+  ApplicationName:    "app",
+  ApplicationVersion: "0.0.1",
+  Endpoint:           "localhost:4317",
 })
+if err != nil {
+  ....
+}
+defer shutdown()
 ```
 
 ## Http Middleware

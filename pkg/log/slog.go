@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+
+	"github.com/bruno303/go-toolkit/pkg/trace"
 )
 
 type (
@@ -12,6 +14,7 @@ type (
 	SlogAdapter struct {
 		logger                *slog.Logger
 		level                 *slog.LevelVar
+		defaultAdditionalInfo func(context.Context) []any
 		extractAdditionalInfo func(context.Context) []any
 	}
 	SlogAdapterOpts struct {
@@ -19,6 +22,7 @@ type (
 		FormatJson            bool
 		Source                string
 		ExtractAdditionalInfo func(context.Context) []any
+		AddSource             bool
 	}
 )
 
@@ -37,11 +41,12 @@ func NewSlogAdapter(opts SlogAdapterOpts) SlogAdapter {
 		ai := make([]any, 0)
 		ai = append(ai, "source", opts.Source)
 		ai = append(ai, opts.ExtractAdditionalInfo(ctx)...)
+		ai = append(ai, extractTraceInfo(ctx)...)
 		return ai
 	}
 
 	handlerOpts := &slog.HandlerOptions{
-		AddSource: false,
+		AddSource: opts.AddSource,
 		Level:     levelVar,
 	}
 
@@ -56,6 +61,14 @@ func NewSlogAdapter(opts SlogAdapterOpts) SlogAdapter {
 		level:                 levelVar,
 		extractAdditionalInfo: extractInfo,
 	}
+}
+
+func extractTraceInfo(ctx context.Context) []any {
+	traceIDs := trace.ExtractTraceIds(ctx)
+	if traceIDs.IsValid {
+		return []any{"trace_id", traceIDs.TraceID, "span_id", traceIDs.SpanID}
+	}
+	return nil
 }
 
 func (l SlogAdapter) Info(ctx context.Context, msg string, args ...any) {

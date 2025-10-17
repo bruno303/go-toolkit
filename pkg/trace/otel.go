@@ -28,11 +28,11 @@ func (t OtelTracerAdapter) Trace(ctx context.Context, cfg *TraceConfig, cb Trace
 	return cb(ctx)
 }
 
-func (t OtelTracerAdapter) ExtractTraceIds(ctx context.Context) TraceIds {
+func (t OtelTracerAdapter) ExtractTraceIds(ctx context.Context) TraceIDs {
 	span := tracelib.SpanFromContext(ctx)
-	return TraceIds{
-		TraceId: span.SpanContext().TraceID().String(),
-		SpanId:  span.SpanContext().SpanID().String(),
+	return TraceIDs{
+		TraceID: span.SpanContext().TraceID().String(),
+		SpanID:  span.SpanContext().SpanID().String(),
 		IsValid: span.SpanContext().IsValid(),
 	}
 }

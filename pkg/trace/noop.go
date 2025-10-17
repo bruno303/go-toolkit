@@ -14,10 +14,10 @@ func (t NoOpTracer) Trace(ctx context.Context, cfg *TraceConfig, cb TraceCallbac
 	return cb(ctx)
 }
 
-func (t NoOpTracer) ExtractTraceIds(ctx context.Context) TraceIds {
-	return TraceIds{
-		TraceId: "",
-		SpanId:  "",
+func (t NoOpTracer) ExtractTraceIds(ctx context.Context) TraceIDs {
+	return TraceIDs{
+		TraceID: "",
+		SpanID:  "",
 		IsValid: false,
 	}
 }

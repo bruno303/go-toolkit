@@ -14,14 +14,14 @@ type (
 		TraceName string
 		SpanName  string
 	}
-	TraceIds struct {
-		TraceId string
-		SpanId  string
+	TraceIDs struct {
+		TraceID string
+		SpanID  string
 		IsValid bool
 	}
 	Tracer interface {
 		Trace(ctx context.Context, cfg *TraceConfig, cb TraceCallback) (any, error)
-		ExtractTraceIds(ctx context.Context) TraceIds
+		ExtractTraceIds(ctx context.Context) TraceIDs
 		InjectAttributes(ctx context.Context, attrs ...Attribute)
 		InjectError(ctx context.Context, err error)
 	}
@@ -54,7 +54,7 @@ func Trace(ctx context.Context, cfg *TraceConfig, cb TraceCallback) (any, error)
 	return tracer.Trace(ctx, cfg, cb)
 }
 
-func ExtractTraceIds(ctx context.Context) TraceIds {
+func ExtractTraceIds(ctx context.Context) TraceIDs {
 	return tracer.ExtractTraceIds(ctx)
 }
 
