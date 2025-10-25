@@ -62,6 +62,14 @@ func (ad *AsyncDecorator) Shutdown(context.Context) error {
 	return nil
 }
 
+func (ad *AsyncDecorator) Name() string {
+	return ad.logger.Name()
+}
+
+func (ad *AsyncDecorator) Level() Level {
+	return ad.logger.Level()
+}
+
 func (ad *AsyncDecorator) dispatchLogs() {
 	defer ad.wg.Done()
 	for fn := range ad.ch {

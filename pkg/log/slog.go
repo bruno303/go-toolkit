@@ -13,14 +13,16 @@ type (
 	ExtractFunc func(context.Context) []any
 	SlogAdapter struct {
 		logger                *slog.Logger
-		level                 *slog.LevelVar
+		slogLevel             *slog.LevelVar
 		defaultAdditionalInfo func(context.Context) []any
 		extractAdditionalInfo func(context.Context) []any
+		name                  string
+		level                 Level
 	}
 	SlogAdapterOpts struct {
 		Level                 Level
 		FormatJson            bool
-		Source                string
+		Name                  string
 		ExtractAdditionalInfo func(context.Context) []any
 		AddSource             bool
 	}
@@ -39,7 +41,7 @@ func NewSlogAdapter(opts SlogAdapterOpts) SlogAdapter {
 	}
 	extractInfo = func(ctx context.Context) []any {
 		ai := make([]any, 0)
-		ai = append(ai, "source", opts.Source)
+		ai = append(ai, "source", opts.Name)
 		ai = append(ai, opts.ExtractAdditionalInfo(ctx)...)
 		ai = append(ai, extractTraceInfo(ctx)...)
 		return ai
@@ -58,8 +60,10 @@ func NewSlogAdapter(opts SlogAdapterOpts) SlogAdapter {
 	}
 	return SlogAdapter{
 		logger:                slog.New(handler),
-		level:                 levelVar,
+		slogLevel:             levelVar,
 		extractAdditionalInfo: extractInfo,
+		name:                  opts.Name,
+		level:                 opts.Level,
 	}
 }
 
@@ -100,12 +104,20 @@ func (l SlogAdapter) Error(ctx context.Context, msg string, err error) {
 }
 
 func (la SlogAdapter) SetLevel(l Level) error {
-	la.level.Set(toSlogLevel(l))
+	la.slogLevel.Set(toSlogLevel(l))
 	return nil
 }
 
 func (l SlogAdapter) Shutdown(context.Context) error {
 	return nil
+}
+
+func (l SlogAdapter) Name() string {
+	return l.name
+}
+
+func (l SlogAdapter) Level() Level {
+	return l.level
 }
 
 func toSlogLevel(l Level) slog.Level {

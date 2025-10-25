@@ -5,25 +5,21 @@ import (
 	"sync"
 )
 
+//go:generate go tool mockgen -destination mocks.go -package log . Logger
+
 var (
-	log     Logger              = nil
-	factory func(string) Logger = func(name string) Logger {
+	log     Logger        = nil
+	factory LoggerFactory = func(name string) Logger {
 		return NewSlogAdapter(SlogAdapterOpts{
 			Level:      LevelInfo,
 			FormatJson: false,
-			Source:     name,
+			Name:       name,
 		})
 	}
 	mutex sync.Mutex
-)
 
-type Level uint
-
-const (
-	LevelDebug Level = iota
-	LevelInfo
-	LevelWarn
-	LevelError
+	logs                = make(map[string]Logger)
+	logConfig LogConfig = LogConfig{}
 )
 
 type Logger interface {
@@ -33,10 +29,12 @@ type Logger interface {
 	Error(ctx context.Context, msg string, err error)
 	SetLevel(l Level) error
 	Shutdown(context.Context) error
+	Name() string
+	Level() Level
 }
 
 func Log() Logger {
-	mutex.TryLock()
+	mutex.Lock()
 	defer mutex.Unlock()
 	if log == nil {
 		log = factory("default")
@@ -53,5 +51,67 @@ func SetLoggerFactory(f func(string) Logger) {
 }
 
 func NewLogger(name string) Logger {
-	return factory(name)
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	if existingLog, ok := logs[name]; ok {
+		loggerPostCreation(existingLog)
+		return existingLog
+	}
+
+	log := factory(name)
+	loggerPostCreation(log)
+	logs[name] = log
+	return log
+}
+
+func loggerPostCreation(logger Logger) {
+	if logConfig.Levels == nil {
+		return
+	}
+
+	if existingLevel, ok := logConfig.Levels[logger.Name()]; ok {
+		if existingLevel != logger.Level() {
+			logger.SetLevel(existingLevel)
+		}
+	}
+}
+
+func ConfigureLogging(config LogConfig) {
+	logConfig = config
+
+	if logConfig.Type == LogTypeMultiple {
+		configureMultipleLoggers()
+	} else if logConfig.Type == LogTypeSingleton {
+		configureSingletonLogger()
+	} else {
+		panic("unknown LogType in LogConfig")
+	}
+}
+
+func configureSingletonLogger() {
+	if logConfig.SingletonLogConfig.Logger == nil {
+		panic("SingletonLogConfig.Logger must be set for LogTypeSingleton")
+	}
+	log = logConfig.SingletonLogConfig.Logger
+}
+
+func configureMultipleLoggers() {
+	if logConfig.MultipleLogConfig.Factory == nil {
+		panic("MultipleLogConfig.Factory must be set for LogTypeMultiple")
+	}
+	factory = logConfig.MultipleLogConfig.Factory
+}
+
+func SetLevel(name string, level Level) error {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	logConfig.Levels[name] = level
+
+	if logger, ok := logs[name]; ok {
+		return logger.SetLevel(level)
+	}
+
+	return nil
 }
