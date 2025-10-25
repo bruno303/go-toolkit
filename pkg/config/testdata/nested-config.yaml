@@ -1,0 +1,8 @@
+server:
+  host: localhost
+  port: 8080
+db:
+  host: db-host
+  port: 5432
+  username: testuser
+  password: testpass

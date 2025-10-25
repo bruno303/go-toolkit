@@ -144,3 +144,23 @@ array.Join(mySlice, "-") // "a-b-c"
 array.Filter(mySlice, func(e string) string { return e != "b" }) // []string{"a","c"}
 array.Remove(mySlice, func(e) bool { return e == "c" }) // []string{"a","b"}
 ```
+
+## Configuration Loader
+
+```go
+type MyConfig struct {
+  ID string `env:"ID" yaml:"id"`
+  Name string `env:"NAME" yaml:"name"`
+  Metadata struct {
+    Field1 bool `env:"METADATA_FIELD1" yaml:"field_1"`
+  } `yaml:"metadata"`
+}
+
+// folder with your config file
+//go:embed config/*
+var fs embed.FS
+
+var cfg MyConfig{}
+LoadConfig(&cfg, fs)
+// use you cfg as you wish
+```

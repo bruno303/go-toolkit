@@ -1,0 +1,6 @@
+invalid yaml content:
+  - this is not
+    valid yaml
+  - unclosed bracket [
+  missing colon
+    invalid indentation

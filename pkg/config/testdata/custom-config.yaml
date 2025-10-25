@@ -1,0 +1,7 @@
+app_name: custom-app
+port: 3000
+debug: false
+timeout: 45s
+database_url: postgres://custom-host/customdb
+features:
+  - custom-feature

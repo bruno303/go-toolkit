@@ -1,0 +1,8 @@
+app_name: test-app
+port: 8080
+debug: true
+timeout: 30s
+database_url: postgres://localhost/testdb
+features:
+  - feature1
+  - feature2
