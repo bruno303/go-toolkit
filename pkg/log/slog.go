@@ -14,7 +14,6 @@ type (
 	SlogAdapter struct {
 		logger                *slog.Logger
 		slogLevel             *slog.LevelVar
-		defaultAdditionalInfo func(context.Context) []any
 		extractAdditionalInfo func(context.Context) []any
 		name                  string
 		level                 Level
@@ -25,6 +24,7 @@ type (
 		Name                  string
 		ExtractAdditionalInfo func(context.Context) []any
 		AddSource             bool
+		Environment           string
 	}
 )
 
@@ -34,16 +34,16 @@ func NewSlogAdapter(opts SlogAdapterOpts) SlogAdapter {
 	level := toSlogLevel(opts.Level)
 	levelVar := &slog.LevelVar{}
 	levelVar.Set(level)
-	var extractInfo func(context.Context) []any = nil
 
 	if opts.ExtractAdditionalInfo == nil {
 		opts.ExtractAdditionalInfo = func(context.Context) []any { return nil }
 	}
-	extractInfo = func(ctx context.Context) []any {
+	extractInfo := func(ctx context.Context) []any {
 		ai := make([]any, 0)
 		ai = append(ai, "source", opts.Name)
 		ai = append(ai, opts.ExtractAdditionalInfo(ctx)...)
 		ai = append(ai, extractTraceInfo(ctx)...)
+		ai = append(ai, "env", opts.Environment)
 		return ai
 	}
 

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
@@ -18,6 +19,7 @@ type Config struct {
 	Endpoint           string
 	ApplicationName    string
 	ApplicationVersion string
+	Environment        string
 }
 
 func SetupOTelSDK(ctx context.Context, cfg Config) (shutdown func(context.Context) error, err error) {
@@ -63,6 +65,8 @@ func newTraceProvider(cfg Config) (*trace.TracerProvider, error) {
 			semconv.SchemaURL,
 			semconv.ServiceName(cfg.ApplicationName),
 			semconv.ServiceVersion(cfg.ApplicationVersion),
+			semconv.DeploymentEnvironmentName(cfg.Environment),
+			attribute.String("env", cfg.Environment),
 		),
 	)
 
