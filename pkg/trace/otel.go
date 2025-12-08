@@ -25,7 +25,11 @@ func (t OtelTracerAdapter) Trace(ctx context.Context, cfg *TraceConfig, cb Trace
 
 	ctx, span := startSpan(ctx, cfg.TraceName, cfg.SpanName)
 	defer span.End()
-	return cb(ctx)
+	res, err := cb(ctx)
+	if err != nil {
+		span.RecordError(err)
+	}
+	return res, err
 }
 
 func (t OtelTracerAdapter) ExtractTraceIds(ctx context.Context) TraceIDs {
