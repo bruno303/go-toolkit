@@ -20,12 +20,12 @@ type Config struct {
 	Enabled            bool
 	Port               int
 	Path               string
-	log                log.Logger
+	Log                log.Logger
 }
 
 func SetupOTelMetrics(ctx context.Context, cfg Config) (shutdown func(context.Context) error, err error) {
 	if !cfg.Enabled {
-		cfg.log.Info(ctx, "metrics disabled")
+		cfg.Log.Info(ctx, "metrics disabled")
 		return func(ctx context.Context) error { return nil }, nil
 	}
 
@@ -63,11 +63,11 @@ func SetupOTelMetrics(ctx context.Context, cfg Config) (shutdown func(context.Co
 }
 
 func serveMetrics(ctx context.Context, cfg Config) {
-	cfg.log.Info(ctx, fmt.Sprintf("serving metrics at port %d path %s", cfg.Port, cfg.Path))
+	cfg.Log.Info(ctx, fmt.Sprintf("serving metrics at port %d path %s", cfg.Port, cfg.Path))
 	http.Handle(cfg.Path, promhttp.Handler())
 	err := http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), nil)
 	if err != nil {
-		cfg.log.Error(ctx, "error serving http", err)
+		cfg.Log.Error(ctx, "error serving http", err)
 		return
 	}
 }
