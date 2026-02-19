@@ -412,6 +412,32 @@ func TestLoadConfig_ComplexEnvironmentVariables(t *testing.T) {
 	}
 }
 
+func TestLoadConfigWithoutEnvs(t *testing.T) {
+	resetLogStateForConfig()
+	clearTestEnvVars()
+
+	os.Setenv("CONFIG_FILE", "testdata/config.yaml")
+	os.Setenv("APP_NAME", "env-app")
+	os.Setenv("PORT", "9090")
+	defer func() {
+		os.Unsetenv("CONFIG_FILE")
+		os.Unsetenv("APP_NAME")
+		os.Unsetenv("PORT")
+		os.Unsetenv("SKIP_ENV_CONFIG")
+	}()
+
+	var cfg TestConfig
+	LoadConfigWithoutEnvs(&cfg, testFS)
+
+	// Environment variables should be ignored when SKIP_ENV_CONFIG is set
+	if cfg.AppName != "test-app" {
+		t.Errorf("expected app_name to remain 'test-app' when SKIP_ENV_CONFIG is set, got %s", cfg.AppName)
+	}
+	if cfg.Port != 8080 {
+		t.Errorf("expected port to remain 8080 when SKIP_ENV_CONFIG is set, got %d", cfg.Port)
+	}
+}
+
 func resetLogStateForConfig() {
 	// Configure a simple logger for testing
 	log.SetLogger(log.NewSlogAdapter(log.SlogAdapterOpts{
