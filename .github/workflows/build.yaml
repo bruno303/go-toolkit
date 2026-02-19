@@ -98,11 +98,13 @@ jobs:
       - name: Check if tag exists
         id: check_tag
         run: |
+          TAG_NAME="v${{ github.event.inputs.version }}"
           if git rev-parse "v${{ env.NEW_VERSION }}" >/dev/null 2>&1; then
             echo "TAG_EXISTS=true" >> $GITHUB_ENV
             echo "Tag v${{ env.NEW_VERSION }} already exists. Skipping."
           else
             echo "TAG_EXISTS=false" >> $GITHUB_ENV
+            echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
           fi
 
       - name: Commit and Push Version Bump
@@ -120,15 +122,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          TAG_NAME="v${{ env.NEW_VERSION }}"
-          echo "Creating tag $TAG_NAME"
+          echo "Creating tag ${{ env.TAG_NAME }}"
           
-          git tag -a "$TAG_NAME" -m "Automated release $TAG_NAME"
-          git push origin "$TAG_NAME"
+          git tag -a "${{ env.TAG_NAME }}" -m "Automated release ${{ env.TAG_NAME }}"
+          git push origin "${{ env.TAG_NAME }}"
 
       - name: Summary
         run: |
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "## ✅ Deployment Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🚀 New Version: \`${{ env.NEW_VERSION }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 New Version: \`${{ env.TAG_NAME }}\`" >> $GITHUB_STEP_SUMMARY
